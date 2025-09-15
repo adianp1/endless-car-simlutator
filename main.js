@@ -1,20 +1,20 @@
-// Main.js - Endless Interstate Driving Simulator with Guardrails, Traffic, and Exits
+// Main.js - Realistic Interstate Driving Simulator
+// With smooth camera, lane-locked traffic, and distant mountains backdrop
 
 // --- THREE.js setup ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb); // sky blue
 
 const camera = new THREE.PerspectiveCamera(
-  75, window.innerWidth / window.innerHeight, 0.1, 2000
+  75, window.innerWidth / window.innerHeight, 0.1, 5000
 );
-camera.position.set(0, 6, 12);
+camera.position.set(0, 6, 14);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// Resize handling
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -22,154 +22,117 @@ window.addEventListener('resize', () => {
 });
 
 // --- Lighting ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(10, 20, 10);
-directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.width = 2048;
-directionalLight.shadow.mapSize.height = 2048;
-scene.add(directionalLight);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(50, 200, 100);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+scene.add(sun);
 
-// --- Ground (Grass) ---
-const groundGeo = new THREE.PlaneGeometry(2000, 2000);
+// --- Ground ---
+const groundGeo = new THREE.PlaneGeometry(5000, 5000);
 const groundMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
 const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = 0;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// --- Mountains (scenery) ---
-function createMountain(x, z, height, width) {
-  const geo = new THREE.ConeGeometry(width, height, 6);
-  const mat = new THREE.MeshStandardMaterial({ color: 0x8B7D7B, flatShading: true });
-  const mountain = new THREE.Mesh(geo, mat);
-  mountain.position.set(x, height / 2, z);
-  mountain.castShadow = true;
-  mountain.receiveShadow = true;
-  scene.add(mountain);
-  return mountain;
-}
-
-// Place mountains far enough away so car never "hits" them
-for (let i = -5; i <= 5; i++) {
-  for (let j = 0; j < 5; j++) {
-    const height = 30 + Math.random() * 20;
-    const width = 30 + Math.random() * 15;
-    createMountain(i * 80, -200 - j * 100, height, width);
-    createMountain(i * 80, 200 + j * 100, height, width);
-  }
-}
+// --- Distant Mountain Backdrop (Skybox style) ---
+const skyGeo = new THREE.SphereGeometry(4000, 64, 64);
+const skyMat = new THREE.MeshBasicMaterial({
+  map: new THREE.TextureLoader().load("textures/mountains.jpg"), // <- supply your panoramic mountain texture
+  side: THREE.BackSide
+});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
 
 // --- Road Parameters ---
 const laneCount = 3;
 const laneWidth = 3.5;
 const roadWidth = laneCount * laneWidth;
-const segmentLength = 60;
-const numSegments = 8;
+const segmentLength = 80;
+const numSegments = 10;
 
 let roadSegments = [];
 
-// Create a single road segment with lane markings + guardrails
 function createRoadSegment(zPos) {
   const group = new THREE.Group();
 
-  // Road base
+  // Road surface
   const roadGeo = new THREE.PlaneGeometry(roadWidth, segmentLength);
-  const roadMat = new THREE.MeshStandardMaterial({ color: 0x202020 });
+  const roadMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2b });
   const road = new THREE.Mesh(roadGeo, roadMat);
   road.rotation.x = -Math.PI / 2;
   road.position.z = -segmentLength / 2;
   road.receiveShadow = true;
   group.add(road);
 
-  // Shoulders (white lines)
-  const shoulderLineWidth = 0.15;
-  const shoulderGeo = new THREE.PlaneGeometry(shoulderLineWidth, segmentLength);
+  // Shoulders
   const shoulderMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const shoulderGeo = new THREE.PlaneGeometry(0.2, segmentLength);
 
-  const leftShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
-  leftShoulder.position.set(-roadWidth / 2 + shoulderLineWidth / 2, 0.01, -segmentLength / 2);
-  leftShoulder.rotation.x = -Math.PI / 2;
-  group.add(leftShoulder);
+  const left = new THREE.Mesh(shoulderGeo, shoulderMat);
+  left.position.set(-roadWidth / 2 + 0.1, 0.01, -segmentLength / 2);
+  left.rotation.x = -Math.PI / 2;
+  group.add(left);
 
-  const rightShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
-  rightShoulder.position.set(roadWidth / 2 - shoulderLineWidth / 2, 0.01, -segmentLength / 2);
-  rightShoulder.rotation.x = -Math.PI / 2;
-  group.add(rightShoulder);
+  const right = new THREE.Mesh(shoulderGeo, shoulderMat);
+  right.position.set(roadWidth / 2 - 0.1, 0.01, -segmentLength / 2);
+  right.rotation.x = -Math.PI / 2;
+  group.add(right);
 
   // Lane dividers (dashed)
-  const dashLength = 4;
-  const dashGap = 4;
+  const dashLength = 5;
+  const dashGap = 5;
   const dashGeo = new THREE.PlaneGeometry(0.15, dashLength);
   const dashMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
   for (let lane = 1; lane < laneCount; lane++) {
-    const xPos = -roadWidth / 2 + lane * laneWidth;
+    const x = -roadWidth / 2 + lane * laneWidth;
     for (let z = -segmentLength / 2; z < segmentLength / 2; z += dashLength + dashGap) {
       const dash = new THREE.Mesh(dashGeo, dashMat);
-      dash.position.set(xPos, 0.02, z + dashLength / 2);
+      dash.position.set(x, 0.02, z + dashLength / 2);
       dash.rotation.x = -Math.PI / 2;
       group.add(dash);
     }
   }
 
   // Guardrails
-  const railHeight = 1;
-  const railThickness = 0.2;
-  const railGeo = new THREE.BoxGeometry(railThickness, railHeight, segmentLength);
-  const railMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.6, roughness: 0.4 });
+  const railGeo = new THREE.BoxGeometry(0.2, 1, segmentLength);
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.6, roughness: 0.3 });
 
   const leftRail = new THREE.Mesh(railGeo, railMat);
-  leftRail.position.set(-roadWidth / 2 - 0.5, railHeight / 2, -segmentLength / 2);
+  leftRail.position.set(-roadWidth / 2 - 0.5, 0.5, -segmentLength / 2);
   group.add(leftRail);
 
   const rightRail = new THREE.Mesh(railGeo, railMat);
-  rightRail.position.set(roadWidth / 2 + 0.5, railHeight / 2, -segmentLength / 2);
+  rightRail.position.set(roadWidth / 2 + 0.5, 0.5, -segmentLength / 2);
   group.add(rightRail);
 
   group.position.z = zPos;
   scene.add(group);
-
   return group;
 }
 
-// Initialize road
+// Build initial road
 for (let i = 0; i < numSegments; i++) {
   roadSegments.push(createRoadSegment(-i * segmentLength));
 }
 
-// --- Car (player) ---
+// --- Player Car ---
 const car = new THREE.Group();
-const bodyGeometry = new THREE.BoxGeometry(2.4, 0.6, 4.8);
-const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x003399, roughness: 0.6, metalness: 0.3 });
-const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-bodyMesh.castShadow = true;
-bodyMesh.position.y = 0.35;
-car.add(bodyMesh);
-
-// Wheels
-const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 32);
-const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
-function createWheel(x, z) {
-  const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-  wheel.rotation.z = Math.PI / 2;
-  wheel.position.set(x, 0.2, z);
-  wheel.castShadow = true;
-  return wheel;
-}
-car.add(createWheel(-0.95, 1.8));
-car.add(createWheel(0.95, 1.8));
-car.add(createWheel(-0.95, -1.8));
-car.add(createWheel(0.95, -1.8));
-
+const body = new THREE.Mesh(
+  new THREE.BoxGeometry(2.4, 0.7, 4.5),
+  new THREE.MeshStandardMaterial({ color: 0x0044cc })
+);
+body.position.y = 0.4;
+body.castShadow = true;
+car.add(body);
 car.position.y = 0.35;
-car.position.z = 0;
 scene.add(car);
 
-// --- Traffic cars ---
+// --- Traffic Cars ---
 const traffic = [];
 function spawnTraffic(zPos, lane) {
   const carGeo = new THREE.BoxGeometry(2, 1, 4);
@@ -177,30 +140,20 @@ function spawnTraffic(zPos, lane) {
   const tCar = new THREE.Mesh(carGeo, carMat);
   tCar.position.set((lane - laneCount / 2 + 0.5) * laneWidth, 0.5, zPos);
   scene.add(tCar);
-  traffic.push({ mesh: tCar, speed: 0.5 + Math.random() * 1.2 });
+  traffic.push({
+    mesh: tCar,
+    lane: lane,
+    speed: 0.6 + Math.random() * 1.0
+  });
 }
-spawnTraffic(-40, 0);
-spawnTraffic(-80, 2);
-
-// --- Exit ramp (example) ---
-function createExit(zPos) {
-  const exitGeo = new THREE.PlaneGeometry(roadWidth, 40);
-  const exitMat = new THREE.MeshStandardMaterial({ color: 0x303030 });
-  const exit = new THREE.Mesh(exitGeo, exitMat);
-  exit.rotation.x = -Math.PI / 2;
-  exit.rotation.z = -0.25; // angle off
-  exit.position.set(roadWidth / 2, 0.01, zPos);
-  scene.add(exit);
+for (let i = 0; i < 6; i++) {
+  spawnTraffic(-60 * (i + 1), Math.floor(Math.random() * laneCount));
 }
-createExit(-300);
 
 // --- Controls ---
-let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
-const maxSpeed = 2.5;
 let speed = 0;
-const acceleration = 0.06;
-const deceleration = 0.04;
-const steeringAngle = 0.03;
+const maxSpeed = 2.8;
+let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp' || e.key === 'w') moveForward = true;
@@ -215,38 +168,37 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowRight' || e.key === 'd') turnRight = false;
 });
 
-// --- Speedometer ---
+// --- Speedometer UI ---
 const speedometer = document.createElement('div');
 speedometer.style.position = 'fixed';
 speedometer.style.bottom = '20px';
 speedometer.style.left = '20px';
 speedometer.style.color = 'white';
 speedometer.style.backgroundColor = 'rgba(0,0,0,0.5)';
-speedometer.style.padding = '8px 12px';
-speedometer.style.borderRadius = '8px';
+speedometer.style.padding = '6px 10px';
+speedometer.style.borderRadius = '6px';
 speedometer.style.fontFamily = 'Arial, sans-serif';
-speedometer.style.fontSize = '18px';
-speedometer.textContent = 'Speed: 0 mph';
+speedometer.style.fontSize = '16px';
 document.body.appendChild(speedometer);
 
-// --- Animate loop ---
+// --- Animation ---
+let cameraTarget = new THREE.Vector3();
+
 function animate() {
   requestAnimationFrame(animate);
 
-  // Speed logic
-  if (moveForward) speed += acceleration;
-  else if (moveBackward) speed -= acceleration;
-  else {
-    if (speed > 0) speed -= deceleration;
-    else if (speed < 0) speed += deceleration;
-  }
-  speed = Math.min(Math.max(speed, -maxSpeed / 2), maxSpeed);
+  // Accel/decel
+  if (moveForward) speed = Math.min(speed + 0.05, maxSpeed);
+  else if (moveBackward) speed = Math.max(speed - 0.05, -maxSpeed / 2);
+  else speed *= 0.98;
 
-  if (turnLeft && Math.abs(speed) > 0.01) car.rotation.y += steeringAngle * (speed / maxSpeed);
-  if (turnRight && Math.abs(speed) > 0.01) car.rotation.y -= steeringAngle * (speed / maxSpeed);
+  // Steering (strafe only, keep car forward-facing)
+  if (turnLeft) car.position.x -= 0.1;
+  if (turnRight) car.position.x += 0.1;
+  car.position.x = Math.max(-roadWidth / 2 + 1, Math.min(roadWidth / 2 - 1, car.position.x));
 
-  car.position.x -= Math.sin(car.rotation.y) * speed;
-  car.position.z -= Math.cos(car.rotation.y) * speed;
+  // Move car forward
+  car.position.z -= speed;
 
   // Road recycling
   const first = roadSegments[0];
@@ -256,21 +208,21 @@ function animate() {
     roadSegments.push(roadSegments.shift());
   }
 
-  // Traffic update
+  // Traffic update (lane-locked)
   for (let t of traffic) {
     t.mesh.position.z += t.speed;
-    if (t.mesh.position.z > car.position.z + 50) {
-      t.mesh.position.z = car.position.z - 200;
+    if (t.mesh.position.z > car.position.z + 60) {
+      t.mesh.position.z = car.position.z - 400;
+      t.lane = Math.floor(Math.random() * laneCount);
+      t.mesh.position.x = (t.lane - laneCount / 2 + 0.5) * laneWidth;
+      t.speed = 0.6 + Math.random() * 1.0;
     }
   }
 
-  // Camera follow
-  const desiredCameraPos = new THREE.Vector3(
-    car.position.x + Math.sin(car.rotation.y) * 6,
-    5,
-    car.position.z + Math.cos(car.rotation.y) * 6
-  );
-  camera.position.lerp(desiredCameraPos, 0.1);
+  // Camera smoothing (springy follow)
+  const desired = new THREE.Vector3(car.position.x, 5, car.position.z + 12);
+  cameraTarget.lerp(desired, 0.05);
+  camera.position.copy(cameraTarget);
   camera.lookAt(car.position.x, car.position.y + 1, car.position.z);
 
   // Speedometer
@@ -279,3 +231,4 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+

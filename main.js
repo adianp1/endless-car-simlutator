@@ -132,7 +132,7 @@ for(let i=0;i<numSegments;i++) roadSegments.push(createRoadSegment(-i*segmentLen
 // --- Load GLB Car ---
 let car, carLoaded = false;
 const loader = new THREE.GLTFLoader();
-loader.load('exterminator_00_interceptor_-_low_poly_model.glb', gltf => {
+loader.load('car.glb', gltf => {
     car = gltf.scene;
     car.scale.set(2, 2, 2);
     car.position.set(0, 0.35, 0);

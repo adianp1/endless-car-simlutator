@@ -1,38 +1,47 @@
 // --- THREE.js Setup ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+scene.background = new THREE.Color(0x87ceeb); // sky blue
 
 const camera = new THREE.PerspectiveCamera(
   75, window.innerWidth/window.innerHeight, 0.1, 1000
 );
-camera.position.set(0,6,12);
+camera.position.set(0, 6, 12);
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // smoother shadows
 document.body.appendChild(renderer.domElement);
 
-window.addEventListener('resize', ()=>{
+window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// --- Lights ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+// --- Lighting ---
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-directionalLight.position.set(10,50,10);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+directionalLight.position.set(10, 50, 10);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.width = 2048;
 directionalLight.shadow.mapSize.height = 2048;
 scene.add(directionalLight);
 
+const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+fillLight1.position.set(-10, 20, -10);
+scene.add(fillLight1);
+
+const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+fillLight2.position.set(0, 10, -20);
+scene.add(fillLight2);
+
 // --- Ground ---
-const groundGeo = new THREE.PlaneGeometry(500,500);
-const groundMat = new THREE.MeshStandardMaterial({color:0x228B22});
-const ground = new THREE.Mesh(groundGeo,groundMat);
+const groundGeo = new THREE.PlaneGeometry(500, 500);
+const groundMat = new THREE.MeshStandardMaterial({color: 0x228B22});
+const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI/2;
 ground.receiveShadow = true;
 scene.add(ground);
@@ -46,12 +55,11 @@ function createMountain(x,z,height,width){
   mountain.rotation.y = Math.PI/4;
   mountain.castShadow = false;
   scene.add(mountain);
-  return mountain;
 }
 const mountainPositions = [-100,-70,-40,-10,20,50,80];
 for(let x of mountainPositions){
-  const height=20+Math.random()*10;
-  const width=20+Math.random()*10;
+  const height = 20 + Math.random()*10;
+  const width = 20 + Math.random()*10;
   createMountain(x,-200,height,width);
 }
 
@@ -122,23 +130,31 @@ function createRoadSegment(zPos){
 for(let i=0;i<numSegments;i++) roadSegments.push(createRoadSegment(-i*segmentLength));
 
 // --- Load GLB Car ---
-let car, carLoaded=false;
+let car, carLoaded = false;
 const loader = new THREE.GLTFLoader();
-loader.load('models/exterminator_00_interceptor_-_low_poly_model.glb', gltf=>{
-    car=gltf.scene;
-    car.scale.set(2,2,2);
-    car.position.set(0,0.35,0);
-    car.traverse(node=>{
-        if(node.isMesh){ node.castShadow=true; node.receiveShadow=true; }
+loader.load('exterminator_00_interceptor_-_low_poly_model.glb', gltf => {
+    car = gltf.scene;
+    car.scale.set(2, 2, 2);
+    car.position.set(0, 0.35, 0);
+    car.traverse(node => {
+        if(node.isMesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+            if(node.material){
+                node.material.metalness = 0.2;
+                node.material.roughness = 0.6;
+                node.material.side = THREE.FrontSide;
+            }
+        }
     });
     scene.add(car);
-    carLoaded=true;
-},undefined,err=>console.error(err));
+    carLoaded = true;
+}, undefined, err => console.error('GLB load error:', err));
 
 // --- Controls ---
 let moveForward=false, moveBackward=false, turnLeft=false, turnRight=false;
 const maxSpeed=2.5, acceleration=0.06, deceleration=0.04, steeringAngle=0.03;
-window.addEventListener('keydown',e=>{
+window.addEventListener('keydown', e=>{
     switch(e.key){
         case 'ArrowUp':case 'w':moveForward=true;break;
         case 'ArrowDown':case 's':moveBackward=true;break;
@@ -146,7 +162,7 @@ window.addEventListener('keydown',e=>{
         case 'ArrowRight':case 'd':turnRight=true;break;
     }
 });
-window.addEventListener('keyup',e=>{
+window.addEventListener('keyup', e=>{
     switch(e.key){
         case 'ArrowUp':case 'w':moveForward=false;break;
         case 'ArrowDown':case 's':moveBackward=false;break;
@@ -221,7 +237,7 @@ function animate(){
 
     // Move traffic
     trafficCars.forEach(t=>{
-        t.position.z+=speed; // relative movement
+        t.position.z+=speed;
         if(t.position.z>car.position.z+30){
             t.position.z=-Math.random()*200-50;
             t.position.x=laneXPositions[Math.floor(Math.random()*3)];
@@ -253,6 +269,5 @@ function animate(){
     renderer.render(scene,camera);
 }
 animate();
-
 
 

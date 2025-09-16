@@ -17,6 +17,11 @@ const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green colo
 const cube = new THREE.Mesh(geometry, material); // Create mesh with geometry and material
 scene.add(cube); // Add cube to the scene
 
+// --- Camera and Object Position Check ---
+alert("Camera and Cube Set Up");
+alert("Camera Position: " + JSON.stringify(camera.position)); // Alert to show camera position
+alert("Cube Position: " + JSON.stringify(cube.position)); // Alert to show cube position
+
 // --- Simple Animation to Rotate the Cube ---
 function animate() {
     requestAnimationFrame(animate); // Keep animating
@@ -25,4 +30,6 @@ function animate() {
     renderer.render(scene, camera); // Render the scene with the camera
 }
 
+alert("Starting Animation Loop...");
 animate(); // Start the animation loop
+

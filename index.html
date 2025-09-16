@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Endless 3D Car Simulator</title>
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; overflow: hidden; background: black; }
     canvas { display: block; }
     #speedometer {
       position: fixed;
@@ -16,13 +16,24 @@
       padding: 10px;
       border-radius: 5px;
       user-select: none;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <div id="speedometer">Speed: 0</div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="main.js"></script>
+
+  <!-- Import Three.js as ES module -->
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js";
+    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/loaders/GLTFLoader.js";
+
+    // Expose THREE + GLTFLoader globally so main.js can use them
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+
+    // Load your main script
+    import "./main.js";
+  </script>
 </body>
 </html>

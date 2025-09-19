@@ -46,13 +46,12 @@
     <div id="debugPanel">Initializing...</div>
     <div id="progress"></div>
 
-    <script src="three.min.js"></script>
-    <script src="GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        // The GLTFLoader is now available globally after being loaded by the script tag
-        // const GLTFLoader = THREE.GLTFLoader; // No longer needed
-        
+        const GLTFLoader = THREE.GLTFLoader;
+
         // --- DEBUG PANEL ---
         const debugPanel = document.getElementById('debugPanel');
         let logs = [];
@@ -207,7 +206,7 @@
 
             // --- Load GLB Car ---
             let car;
-            const loader = new THREE.GLTFLoader(); // We now get GLTFLoader from the global THREE object
+            const loader = new THREE.GLTFLoader();
             const progressDiv = document.getElementById('progress');
             log("13. Attempting to load car.glb...");
 

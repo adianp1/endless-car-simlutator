@@ -1,0 +1,1 @@
+This project was developed by me, Adian Perez, in math class, beaucse i was to lazy to do math. Its a game combining the best of subway surfuers with the best of madailn stunt cars. All code and assets used are open source. 

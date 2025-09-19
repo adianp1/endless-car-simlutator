@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Car Rider 3D</title>
+    <title>Endless 3D Car Simulator</title>
     <style>
         /* General page styling */
         body { 
@@ -65,7 +66,7 @@
 </head>
 <body>
     <div id="speedometer">Speed: 0</div>
-    <div id="score">Score: 0</div>
+    <div id="score">Score: 100</div>
     <div id="fuelMeter"><div id="fuelBar"></div></div>
     <div id="debugPanel">Initializing...</div>
     <div id="progress"></div>
@@ -240,7 +241,7 @@
                     progressDiv.style.display = 'none';
                     car = gltf.scene;
                     car.scale.set(2, 2, 2);
-                    car.rotation.set(0, -Math.PI / 0, 0); 
+                    car.rotation.set(0, -Math.PI / 2, 0); 
                     car.position.set(0, 0.35, 0);
                     car.traverse(node => {
                         if (node.isMesh) {
@@ -307,8 +308,8 @@
             const scoreDiv = document.getElementById('score');
             const fuelBar = document.getElementById('fuelBar');
             let score = 0;
-            let fuel = 150;
-            const fuelConsumptionRate = 0.5;
+            let fuel = 100;
+            const fuelConsumptionRate = 0.005;
 
             // --- Traffic ---
             const trafficCars = [];

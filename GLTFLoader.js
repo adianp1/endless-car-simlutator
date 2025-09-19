@@ -188,7 +188,7 @@ class GLTFLoader extends Loader {
 
 		}
 
-		// Tells the LoadingManager to track an extra item, which resolves after
+		// Tells the LoadingManager to track an etra item, which resolves after
 		// the model is fully loaded. This means the count of items loaded will
 		// be incorrect, but ensures manager.onLoad() does not fire early.
 		this.manager.itemStart( url );

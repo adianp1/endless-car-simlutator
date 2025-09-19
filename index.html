@@ -163,7 +163,7 @@
             log("11. Mountains added.");
 
             // --- Road ---
-            const laneCount = 3;
+            const laneCount = 6; // Changed from 3 to 6
             const laneWidth = 3.5;
             const roadWidth = laneCount * laneWidth;
             const segmentLength = 60;
@@ -313,13 +313,16 @@
             // --- Traffic ---
             const trafficCars = [];
             const trafficCount = 5;
-            const laneXPositions = [-laneWidth, 0, laneWidth];
+            const laneXPositions = [];
+            for(let i = 0; i < laneCount; i++) {
+                laneXPositions.push(-roadWidth / 2 + (i + 0.5) * laneWidth);
+            }
 
             function createTrafficCar() {
                 const geometry = new THREE.BoxGeometry(2, 1, 4);
                 const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
                 const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(laneXPositions[Math.floor(Math.random() * 3)], 0.5, -Math.random() * 200 - 50);
+                mesh.position.set(laneXPositions[Math.floor(Math.random() * laneCount)], 0.5, -Math.random() * 200 - 50);
                 scene.add(mesh);
                 trafficCars.push(mesh);
                 mesh.passed = false; // Flag to track if the car has been passed
@@ -364,12 +367,13 @@
 
                 // Endless road
                 const firstSeg = roadSegments[0];
-                if (car.position.z < firstSeg.road.position.z - segmentLength) {
-                    const lastSeg = roadSegments[roadSegments.length - 1];
-                    const offset = (lastSeg.road.position.z + segmentLength) - firstSeg.road.position.z;
-                    firstSeg.road.position.z += offset;
-                    firstSeg.markings.children.forEach(m => { m.position.z += offset; });
-                    roadSegments.push(roadSegments.shift());
+                if (car.position.z > camera.position.z + 100) { // New, more robust check
+                     const lastSeg = roadSegments[roadSegments.length - 1];
+                     firstSeg.road.position.z = lastSeg.road.position.z - segmentLength;
+                     firstSeg.markings.children.forEach(m => {
+                         m.position.z = firstSeg.road.position.z - 0.01;
+                     });
+                     roadSegments.push(roadSegments.shift());
                 }
 
                 // Move traffic and score

@@ -47,11 +47,12 @@
     <div id="progress"></div>
 
     <script src="three.min.js"></script>
+    <script src="GLTFLoader.js"></script>
 
     <script>
-        // The GLTFLoader is now part of the three.min.js file
-        const GLTFLoader = THREE.GLTFLoader;
-
+        // The GLTFLoader is now available globally after being loaded by the script tag
+        // const GLTFLoader = THREE.GLTFLoader; // No longer needed
+        
         // --- DEBUG PANEL ---
         const debugPanel = document.getElementById('debugPanel');
         let logs = [];
@@ -64,8 +65,7 @@
         }
         
         log("1. Starting up.");
-
-        // The rest of the code is the same as before, but without the module imports at the top
+        
         try {
             log("2. Attempting to create Three.js Scene.");
             const scene = new THREE.Scene();
@@ -207,7 +207,7 @@
 
             // --- Load GLB Car ---
             let car;
-            const loader = new GLTFLoader();
+            const loader = new THREE.GLTFLoader(); // We now get GLTFLoader from the global THREE object
             const progressDiv = document.getElementById('progress');
             log("13. Attempting to load car.glb...");
 

@@ -19,9 +19,29 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// --- DEBUG PANEL ---
+const debugPanel = document.createElement('div');
+debugPanel.style.position = 'fixed';
+debugPanel.style.top = '100px';
+debugPanel.style.left = '10px';
+debugPanel.style.color = 'yellow';
+debugPanel.style.fontFamily = 'monospace';
+debugPanel.style.background = 'rgba(0,0,0,0.7)';
+debugPanel.style.padding = '10px';
+debugPanel.style.borderRadius = '5px';
+debugPanel.style.userSelect = 'none';
+debugPanel.style.zIndex = '1000';
+document.body.appendChild(debugPanel);
+
+function log(message) {
+    debugPanel.innerHTML += message + '<br>';
+}
+log("Initializing...");
+
 // --- Lighting ---
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
 scene.add(ambientLight);
+log("Ambient light added.");
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
 directionalLight.position.set(10, 50, 10);
@@ -29,14 +49,17 @@ directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.width = 2048;
 directionalLight.shadow.mapSize.height = 2048;
 scene.add(directionalLight);
+log("Directional light added.");
 
 const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
 fillLight1.position.set(-10, 20, -10);
 scene.add(fillLight1);
+log("Fill light 1 added.");
 
 const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
 fillLight2.position.set(0, 10, -20);
 scene.add(fillLight2);
+log("Fill light 2 added.");
 
 // --- Ground ---
 const groundGeo = new THREE.PlaneGeometry(500, 500);
@@ -45,6 +68,7 @@ const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI/2;
 ground.receiveShadow = true;
 scene.add(ground);
+log("Ground added.");
 
 // --- Mountains ---
 function createMountain(x,z,height,width){
@@ -62,6 +86,7 @@ for(let x of mountainPositions){
   const width = 20 + Math.random()*10;
   createMountain(x,-200,height,width);
 }
+log("Mountains added.");
 
 // --- Road ---
 const laneCount = 3;
@@ -128,11 +153,14 @@ function createRoadSegment(zPos){
 }
 
 for(let i=0;i<numSegments;i++) roadSegments.push(createRoadSegment(-i*segmentLength));
+log("Road segments created.");
 
 // --- Load GLB Car ---
 let car;
 const loader = new THREE.GLTFLoader();
+log("Attempting to load car.glb...");
 loader.load('car.glb', gltf => {
+    log("SUCCESS: Car model loaded.");
     car = gltf.scene;
     car.scale.set(2, 2, 2);
     car.position.set(0, 0.35, 0);
@@ -148,10 +176,14 @@ loader.load('car.glb', gltf => {
         }
     });
     scene.add(car);
-    
+    log("Car model added to scene.");
+
     // Start the animation loop ONLY after the car is loaded
     animate();
-}, undefined, err => console.error('GLB load error:', err));
+}, undefined, err => {
+    log("ERROR: GLB load failed. Check file name and location.");
+    console.error('GLB load error:', err);
+});
 
 // --- Controls ---
 let moveForward=false, moveBackward=false, turnLeft=false, turnRight=false;

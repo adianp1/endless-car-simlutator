@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,7 +136,7 @@
             log("9. Fill light 2 added.");
 
             // --- Ground ---
-            const groundGeo = new THREE.PlaneGeometry(5000, 5000); // Made the ground much larger
+            const groundGeo = new THREE.PlaneGeometry(500, 500);
             const groundMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
             const ground = new THREE.Mesh(groundGeo, groundMat);
             ground.rotation.x = -Math.PI / 2;
@@ -164,7 +163,7 @@
             log("11. Mountains added.");
 
             // --- Road ---
-            const laneCount = 6;
+            const laneCount = 3;
             const laneWidth = 3.5;
             const roadWidth = laneCount * laneWidth;
             const segmentLength = 60;
@@ -241,7 +240,7 @@
                     progressDiv.style.display = 'none';
                     car = gltf.scene;
                     car.scale.set(2, 2, 2);
-                    car.rotation.set(0, -Math.PI / 2, 0); 
+                    car.rotation.set(0, Math.PI, 0); // Corrected rotation
                     car.position.set(0, 0.35, 0);
                     car.traverse(node => {
                         if (node.isMesh) {
@@ -314,17 +313,13 @@
             // --- Traffic ---
             const trafficCars = [];
             const trafficCount = 5;
-            const laneXPositions = [];
-            for(let i = 0; i < laneCount; i++) {
-                laneXPositions.push(-roadWidth / 2 + (i + 0.5) * laneWidth);
-            }
+            const laneXPositions = [-laneWidth, 0, laneWidth];
 
             function createTrafficCar() {
                 const geometry = new THREE.BoxGeometry(2, 1, 4);
                 const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
                 const mesh = new THREE.Mesh(geometry, material);
-                const randomLane = laneXPositions[Math.floor(Math.random() * laneCount)];
-                mesh.position.set(randomLane, 0.5, -Math.random() * 200 - 50);
+                mesh.position.set(laneXPositions[Math.floor(Math.random() * 3)], 0.5, -Math.random() * 200 - 50);
                 scene.add(mesh);
                 trafficCars.push(mesh);
                 mesh.passed = false; // Flag to track if the car has been passed
@@ -360,26 +355,26 @@
                 if (Math.abs(speed) < 0.01) speed = 0;
 
                 // Steering
-                if (turnLeft && Math.abs(speed) > 0.01) car.rotation.y -= steeringAngle * (speed / maxSpeed);
-                if (turnRight && Math.abs(speed) > 0.01) car.rotation.y += steeringAngle * (speed / maxSpeed);
+                if (turnLeft && Math.abs(speed) > 0.01) car.rotation.y += steeringAngle * (speed / maxSpeed);
+                if (turnRight && Math.abs(speed) > 0.01) car.rotation.y -= steeringAngle * (speed / maxSpeed);
 
                 // Move car
-                car.position.x += Math.sin(car.rotation.y) * speed;
-                car.position.z += Math.cos(car.rotation.y) * speed;
+                car.position.x -= Math.sin(car.rotation.y) * speed;
+                car.position.z -= Math.cos(car.rotation.y) * speed;
 
                 // Endless road
-                if (roadSegments[0].road.position.z > car.position.z + 10) {
+                const firstSeg = roadSegments[0];
+                if (car.position.z < firstSeg.road.position.z - segmentLength) {
                     const lastSeg = roadSegments[roadSegments.length - 1];
-                    roadSegments[0].road.position.z = lastSeg.road.position.z - segmentLength;
-                    roadSegments[0].markings.children.forEach(m => {
-                        m.position.z = roadSegments[0].road.position.z - 0.01;
-                    });
+                    const offset = (lastSeg.road.position.z + segmentLength) - firstSeg.road.position.z;
+                    firstSeg.road.position.z += offset;
+                    firstSeg.markings.children.forEach(m => { m.position.z += offset; });
                     roadSegments.push(roadSegments.shift());
                 }
 
                 // Move traffic and score
                 trafficCars.forEach(t => {
-                    t.position.z += 2; // Fixed speed for oncoming traffic
+                    t.position.z += speed;
                     const distance = Math.sqrt((car.position.x - t.position.x) ** 2 + (car.position.z - t.position.z) ** 2);
                     
                     if (distance < 2.5) { 
@@ -413,9 +408,9 @@
 
                 // Smooth camera
                 const desiredCameraPos = new THREE.Vector3(
-                    car.position.x - Math.sin(car.rotation.y) * 6,
+                    car.position.x + Math.sin(car.rotation.y) * 6,
                     5,
-                    car.position.z - Math.cos(car.rotation.y) * 6
+                    car.position.z + Math.cos(car.rotation.y) * 6
                 );
                 camera.position.lerp(desiredCameraPos, 0.1);
                 camera.lookAt(car.position.x, car.position.y + 1, car.position.z);

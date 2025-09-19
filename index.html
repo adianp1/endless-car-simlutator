@@ -1,54 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Endless 3D Car Simulator</title>
-  <style>
-    body { margin: 0; overflow: hidden; background: black; }
-    canvas { display: block; }
-  </style>
+    <meta charset="UTF-8" />
+    <title>Endless 3D Car Simulator</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-  <div id="speedometer" style="position: fixed; top: 10px; left: 10px; color: white; font-family: monospace; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; user-select: none; font-size: 16px;">Speed: 0</div>
+    <div id="speedometer" style="position: fixed; top: 10px; left: 10px; color: white; font-family: monospace; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; user-select: none; font-size: 16px;">Speed: 0</div>
 
-  <!-- Import Three.js as ES module -->
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js";
-    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/loaders/GLTFLoader.js";
-
-    // Expose THREE + GLTFLoader globally
-    window.THREE = THREE;
-    window.GLTFLoader = GLTFLoader;
-
-    // Check WebGL support
-    if (!THREE.WebGLRenderer) {
-      alert("WebGL is not supported by your browser.");
-    } else {
-      alert("WebGL is working.");
-    }
-
-    // Basic Test: Add a rotating cube
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
-
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
-    function animate() {
-      requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
-      renderer.render(scene, camera);
-    }
-    animate();
-  </script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
 

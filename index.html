@@ -48,301 +48,308 @@
 
     <script type="module">
         // Importing the necessary libraries from your local repository.
-        // We are now loading them from the files you added: `three.module.js` and `GLTFLoader.js`.
         import * as THREE from "./three.module.js";
         import { GLTFLoader } from "./GLTFLoader.js";
         
         // --- DEBUG PANEL ---
         const debugPanel = document.getElementById('debugPanel');
+        let logs = [];
         function log(message) {
-            debugPanel.innerHTML += message + '<br>';
+            logs.push(message);
+            if (logs.length > 10) { 
+                logs.shift();
+            }
+            debugPanel.innerHTML = logs.join('<br>');
         }
-        log("Initializing...");
-
-        // --- THREE.js Scene Setup ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87ceeb);
-        log("Scene created.");
-
-        const camera = new THREE.PerspectiveCamera(
-            75, window.innerWidth / window.innerHeight, 0.1, 1000
-        );
-        camera.position.set(0, 6, 12);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-        log("Renderer created.");
+        log("1. Starting up.");
+        
+        // The rest of the code is wrapped in a try-catch block for more specific debugging.
+        // If the code breaks at any point, it will display the error message.
+        try {
+            log("2. Attempting to create Three.js Scene.");
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87ceeb);
+            log("3. Scene created successfully.");
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            log("4. Attempting to set up camera and renderer.");
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 6, 12);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+            log("5. Camera and renderer created successfully.");
 
-        // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambientLight);
-        log("Ambient light added.");
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        directionalLight.position.set(10, 50, 10);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        scene.add(directionalLight);
-        log("Directional light added.");
+            // --- Lighting ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+            log("6. Ambient light added.");
 
-        const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        fillLight1.position.set(-10, 20, -10);
-        scene.add(fillLight1);
-        log("Fill light 1 added.");
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(10, 50, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            log("7. Directional light added.");
 
-        const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-        fillLight2.position.set(0, 10, -20);
-        scene.add(fillLight2);
-        log("Fill light 2 added.");
+            const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            fillLight1.position.set(-10, 20, -10);
+            scene.add(fillLight1);
+            log("8. Fill light 1 added.");
 
-        // --- Ground ---
-        const groundGeo = new THREE.PlaneGeometry(500, 500);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
-        log("Ground added.");
+            const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            fillLight2.position.set(0, 10, -20);
+            scene.add(fillLight2);
+            log("9. Fill light 2 added.");
 
-        // --- Mountains ---
-        function createMountain(x, z, height, width) {
-            const geo = new THREE.ConeGeometry(width, height, 4);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x8B7D7B, flatShading: true });
-            const mountain = new THREE.Mesh(geo, mat);
-            mountain.position.set(x, height / 2, z);
-            mountain.rotation.y = Math.PI / 4;
-            mountain.castShadow = false;
-            scene.add(mountain);
-        }
-        const mountainPositions = [-100, -70, -40, -10, 20, 50, 80];
-        for (let x of mountainPositions) {
-            const height = 20 + Math.random() * 10;
-            const width = 20 + Math.random() * 10;
-            createMountain(x, -200, height, width);
-        }
-        log("Mountains added.");
+            // --- Ground ---
+            const groundGeo = new THREE.PlaneGeometry(500, 500);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            log("10. Ground added.");
 
-        // --- Road ---
-        const laneCount = 3;
-        const laneWidth = 3.5;
-        const roadWidth = laneCount * laneWidth;
-        const segmentLength = 60;
-        const numSegments = 8;
-        let roadSegments = [];
+            // --- Mountains ---
+            function createMountain(x, z, height, width) {
+                const geo = new THREE.ConeGeometry(width, height, 4);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x8B7D7B, flatShading: true });
+                const mountain = new THREE.Mesh(geo, mat);
+                mountain.position.set(x, height / 2, z);
+                mountain.rotation.y = Math.PI / 4;
+                mountain.castShadow = false;
+                scene.add(mountain);
+            }
+            const mountainPositions = [-100, -70, -40, -10, 20, 50, 80];
+            for (let x of mountainPositions) {
+                const height = 20 + Math.random() * 10;
+                const width = 20 + Math.random() * 10;
+                createMountain(x, -200, height, width);
+            }
+            log("11. Mountains added.");
 
-        function createRoadSegment(zPos) {
-            const roadGeo = new THREE.PlaneGeometry(roadWidth, segmentLength);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x202020 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            road.position.z = zPos - segmentLength / 2;
-            road.receiveShadow = true;
-            scene.add(road);
+            // --- Road ---
+            const laneCount = 3;
+            const laneWidth = 3.5;
+            const roadWidth = laneCount * laneWidth;
+            const segmentLength = 60;
+            const numSegments = 8;
+            let roadSegments = [];
 
-            const markings = new THREE.Group();
-            const shoulderLineWidth = 0.15;
-            const shoulderLineLength = segmentLength;
-            const shoulderGeo = new THREE.PlaneGeometry(shoulderLineWidth, shoulderLineLength);
-            const shoulderMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            function createRoadSegment(zPos) {
+                const roadGeo = new THREE.PlaneGeometry(roadWidth, segmentLength);
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x202020 });
+                const road = new THREE.Mesh(roadGeo, roadMat);
+                road.rotation.x = -Math.PI / 2;
+                road.position.z = zPos - segmentLength / 2;
+                road.receiveShadow = true;
+                scene.add(road);
 
-            const leftShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
-            leftShoulder.position.set(-roadWidth / 2 + shoulderLineWidth / 2, 0.01, zPos - segmentLength / 2);
-            leftShoulder.rotation.x = -Math.PI / 2;
-            markings.add(leftShoulder);
+                const markings = new THREE.Group();
+                const shoulderLineWidth = 0.15;
+                const shoulderLineLength = segmentLength;
+                const shoulderGeo = new THREE.PlaneGeometry(shoulderLineWidth, shoulderLineLength);
+                const shoulderMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-            const rightShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
-            rightShoulder.position.set(roadWidth / 2 - shoulderLineWidth / 2, 0.01, zPos - segmentLength / 2);
-            rightShoulder.rotation.x = -Math.PI / 2;
-            markings.add(rightShoulder);
+                const leftShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
+                leftShoulder.position.set(-roadWidth / 2 + shoulderLineWidth / 2, 0.01, zPos - segmentLength / 2);
+                leftShoulder.rotation.x = -Math.PI / 2;
+                markings.add(leftShoulder);
 
-            const dashLength = 4, dashGap = 4;
-            const dashGeo = new THREE.PlaneGeometry(shoulderLineWidth, dashLength);
-            const dashMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            for (let lane = 1; lane < laneCount; lane++) {
-                const xPos = -roadWidth / 2 + lane * laneWidth;
-                let zStart = zPos - segmentLength / 2 + dashGap / 2;
-                for (let zDash = zStart; zDash < zPos + segmentLength / 2; zDash += dashLength + dashGap) {
-                    const dash = new THREE.Mesh(dashGeo, dashMat);
-                    dash.position.set(xPos, 0.02, zDash);
-                    dash.rotation.x = -Math.PI / 2;
-                    markings.add(dash);
+                const rightShoulder = new THREE.Mesh(shoulderGeo, shoulderMat);
+                rightShoulder.position.set(roadWidth / 2 - shoulderLineWidth / 2, 0.01, zPos - segmentLength / 2);
+                rightShoulder.rotation.x = -Math.PI / 2;
+                markings.add(rightShoulder);
+
+                const dashLength = 4, dashGap = 4;
+                const dashGeo = new THREE.PlaneGeometry(shoulderLineWidth, dashLength);
+                const dashMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                for (let lane = 1; lane < laneCount; lane++) {
+                    const xPos = -roadWidth / 2 + lane * laneWidth;
+                    let zStart = zPos - segmentLength / 2 + dashGap / 2;
+                    for (let zDash = zStart; zDash < zPos + segmentLength / 2; zDash += dashLength + dashGap) {
+                        const dash = new THREE.Mesh(dashGeo, dashMat);
+                        dash.position.set(xPos, 0.02, zDash);
+                        dash.rotation.x = -Math.PI / 2;
+                        markings.add(dash);
+                    }
                 }
+
+                const dividerLineWidth = 0.1, dividerLineHeight = segmentLength;
+                const dividerGeo = new THREE.PlaneGeometry(dividerLineWidth, dividerLineHeight);
+                const yellowMat = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+                const leftDivider = new THREE.Mesh(dividerGeo, yellowMat);
+                leftDivider.position.set(-dividerLineWidth * 1.5, 0.03, zPos - segmentLength / 2);
+                leftDivider.rotation.x = -Math.PI / 2;
+                markings.add(leftDivider);
+                const rightDivider = new THREE.Mesh(dividerGeo, yellowMat);
+                rightDivider.position.set(dividerLineWidth * 1.5, 0.03, zPos - segmentLength / 2);
+                rightDivider.rotation.x = -Math.PI / 2;
+                markings.add(rightDivider);
+
+                scene.add(markings);
+                return { road, markings };
             }
 
-            // Center divider
-            const dividerLineWidth = 0.1, dividerLineHeight = segmentLength;
-            const dividerGeo = new THREE.PlaneGeometry(dividerLineWidth, dividerLineHeight);
-            const yellowMat = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
-            const leftDivider = new THREE.Mesh(dividerGeo, yellowMat);
-            leftDivider.position.set(-dividerLineWidth * 1.5, 0.03, zPos - segmentLength / 2);
-            leftDivider.rotation.x = -Math.PI / 2;
-            markings.add(leftDivider);
-            const rightDivider = new THREE.Mesh(dividerGeo, yellowMat);
-            rightDivider.position.set(dividerLineWidth * 1.5, 0.03, zPos - segmentLength / 2);
-            rightDivider.rotation.x = -Math.PI / 2;
-            markings.add(rightDivider);
+            for (let i = 0; i < numSegments; i++) roadSegments.push(createRoadSegment(-i * segmentLength));
+            log("12. Road segments created.");
 
-            scene.add(markings);
-            return { road, markings };
-        }
+            // --- Load GLB Car ---
+            let car;
+            const loader = new GLTFLoader();
+            const progressDiv = document.getElementById('progress');
+            log("13. Attempting to load car.glb...");
 
-        for (let i = 0; i < numSegments; i++) roadSegments.push(createRoadSegment(-i * segmentLength));
-        log("Road segments created.");
-
-        // --- Load GLB Car ---
-        let car;
-        const loader = new GLTFLoader();
-        const progressDiv = document.getElementById('progress');
-        log("Attempting to load car.glb...");
-
-        loader.load('car.glb', 
-            // onLoad Callback
-            gltf => {
-                log("SUCCESS: Car model loaded.");
-                progressDiv.style.display = 'none';
-                car = gltf.scene;
-                car.scale.set(2, 2, 2);
-                car.position.set(0, 0.35, 0);
-                car.traverse(node => {
-                    if (node.isMesh) {
-                        node.castShadow = true;
-                        node.receiveShadow = true;
-                        if (node.material) {
-                            node.material.metalness = 0.2;
-                            node.material.roughness = 0.6;
-                            node.material.side = THREE.FrontSide;
+            loader.load('car.glb', 
+                gltf => {
+                    log("SUCCESS: Car model loaded.");
+                    progressDiv.style.display = 'none';
+                    car = gltf.scene;
+                    car.scale.set(2, 2, 2);
+                    car.position.set(0, 0.35, 0);
+                    car.traverse(node => {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                            if (node.material) {
+                                node.material.metalness = 0.2;
+                                node.material.roughness = 0.6;
+                                node.material.side = THREE.FrontSide;
+                            }
                         }
+                    });
+                    scene.add(car);
+                    log("14. Car model added to scene.");
+                    animate();
+                },
+                xhr => {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    progressDiv.textContent = `Loading: ${Math.round(percent)}%`;
+                },
+                err => {
+                    log("ERROR: GLB load failed. Check file name, location, and file integrity.");
+                    progressDiv.textContent = "Error loading model.";
+                }
+            );
+
+            // --- Controls ---
+            let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
+            const maxSpeed = 2.5, acceleration = 0.06, deceleration = 0.04, steeringAngle = 0.03;
+            window.addEventListener('keydown', e => {
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': moveForward = true; break;
+                    case 'ArrowDown': case 's': moveBackward = true; break;
+                    case 'ArrowLeft': case 'a': turnLeft = true; break;
+                    case 'ArrowRight': case 'd': turnRight = true; break;
+                }
+            });
+            window.addEventListener('keyup', e => {
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': moveForward = false; break;
+                    case 'ArrowDown': case 's': moveBackward = false; break;
+                    case 'ArrowLeft': case 'a': turnLeft = false; break;
+                    case 'ArrowRight': case 'd': turnRight = false; break;
+                }
+            });
+
+            // --- UI ---
+            const speedometer = document.getElementById('speedometer');
+            const scoreDiv = document.getElementById('score');
+            let score = 100;
+
+            // --- Traffic ---
+            const trafficCars = [];
+            const trafficCount = 5;
+            const laneXPositions = [-laneWidth, 0, laneWidth];
+
+            function createTrafficCar() {
+                const geometry = new THREE.BoxGeometry(2, 1, 4);
+                const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(laneXPositions[Math.floor(Math.random() * 3)], 0.5, -Math.random() * 200 - 50);
+                scene.add(mesh);
+                trafficCars.push(mesh);
+            }
+
+            for (let i = 0; i < trafficCount; i++) createTrafficCar();
+
+            // --- Animate ---
+            let speed = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Speed
+                if (moveForward) speed += acceleration;
+                else if (moveBackward) speed -= acceleration;
+                else { if (speed > 0) speed -= deceleration; else if (speed < 0) speed += deceleration; }
+                speed = Math.min(Math.max(speed, -maxSpeed / 2), maxSpeed);
+
+                // Steering
+                if (turnLeft && Math.abs(speed) > 0.01) car.rotation.y += steeringAngle * (speed / maxSpeed);
+                if (turnRight && Math.abs(speed) > 0.01) car.rotation.y -= steeringAngle * (speed / maxSpeed);
+
+                // Move car
+                car.position.x -= Math.sin(car.rotation.y) * speed;
+                car.position.z -= Math.cos(car.rotation.y) * speed;
+
+                // Endless road
+                const firstSeg = roadSegments[0];
+                if (car.position.z < firstSeg.road.position.z - segmentLength) {
+                    const lastSeg = roadSegments[roadSegments.length - 1];
+                    firstSeg.road.position.z = lastSeg.road.position.z - segmentLength;
+                    firstSeg.markings.children.forEach(m => {
+                        m.position.z = m.position.z - (lastSeg.road.position.z - firstSeg.road.position.z);
+                    });
+                    roadSegments.push(roadSegments.shift());
+                }
+
+                // Move traffic
+                trafficCars.forEach(t => {
+                    t.position.z += speed;
+                    if (t.position.z > car.position.z + 30) {
+                        t.position.z = -Math.random() * 200 - 50;
+                        t.position.x = laneXPositions[Math.floor(Math.random() * 3)];
                     }
                 });
-                scene.add(car);
-                log("Car model added to scene.");
-                animate();
-            },
-            // onProgress Callback
-            xhr => {
-                const percent = (xhr.loaded / xhr.total) * 100;
-                progressDiv.textContent = `Loading: ${Math.round(percent)}%`;
-            },
-            // onError Callback
-            err => {
-                log("ERROR: GLB load failed. Check file name, location, and file integrity.");
-                progressDiv.textContent = "Error loading model.";
-            }
-        );
 
-        // --- Controls ---
-        let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
-        const maxSpeed = 2.5, acceleration = 0.06, deceleration = 0.04, steeringAngle = 0.03;
-        window.addEventListener('keydown', e => {
-            switch (e.key) {
-                case 'ArrowUp': case 'w': moveForward = true; break;
-                case 'ArrowDown': case 's': moveBackward = true; break;
-                case 'ArrowLeft': case 'a': turnLeft = true; break;
-                case 'ArrowRight': case 'd': turnRight = true; break;
-            }
-        });
-        window.addEventListener('keyup', e => {
-            switch (e.key) {
-                case 'ArrowUp': case 'w': moveForward = false; break;
-                case 'ArrowDown': case 's': moveBackward = false; break;
-                case 'ArrowLeft': case 'a': turnLeft = false; break;
-                case 'ArrowRight': case 'd': turnRight = false; break;
-            }
-        });
-
-        // --- UI ---
-        const speedometer = document.getElementById('speedometer');
-        const scoreDiv = document.getElementById('score');
-        let score = 100;
-
-        // --- Traffic ---
-        const trafficCars = [];
-        const trafficCount = 5;
-        const laneXPositions = [-laneWidth, 0, laneWidth];
-
-        function createTrafficCar() {
-            const geometry = new THREE.BoxGeometry(2, 1, 4);
-            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(laneXPositions[Math.floor(Math.random() * 3)], 0.5, -Math.random() * 200 - 50);
-            scene.add(mesh);
-            trafficCars.push(mesh);
-        }
-
-        for (let i = 0; i < trafficCount; i++) createTrafficCar();
-
-        // --- Animate ---
-        let speed = 0;
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Speed
-            if (moveForward) speed += acceleration;
-            else if (moveBackward) speed -= acceleration;
-            else { if (speed > 0) speed -= deceleration; else if (speed < 0) speed += deceleration; }
-            speed = Math.min(Math.max(speed, -maxSpeed / 2), maxSpeed);
-
-            // Steering
-            if (turnLeft && Math.abs(speed) > 0.01) car.rotation.y += steeringAngle * (speed / maxSpeed);
-            if (turnRight && Math.abs(speed) > 0.01) car.rotation.y -= steeringAngle * (speed / maxSpeed);
-
-            // Move car
-            car.position.x -= Math.sin(car.rotation.y) * speed;
-            car.position.z -= Math.cos(car.rotation.y) * speed;
-
-            // Endless road
-            const firstSeg = roadSegments[0];
-            if (car.position.z < firstSeg.road.position.z - segmentLength) {
-                const lastSeg = roadSegments[roadSegments.length - 1];
-                firstSeg.road.position.z = lastSeg.road.position.z - segmentLength;
-                firstSeg.markings.children.forEach(m => {
-                    m.position.z = m.position.z - (lastSeg.road.position.z - firstSeg.road.position.z);
+                // Collision detection
+                trafficCars.forEach(t => {
+                    const dx = car.position.x - t.position.x;
+                    const dz = car.position.z - t.position.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 2.5) { score -= 10; t.position.z = -Math.random() * 200 - 50; }
+                    else if (distance < 4) { score -= 20; }
                 });
-                roadSegments.push(roadSegments.shift());
+
+                score = Math.max(score, 0);
+                scoreDiv.textContent = `Score: ${score}`;
+
+                // Smooth camera
+                const desiredCameraPos = new THREE.Vector3(
+                    car.position.x + Math.sin(car.rotation.y) * 6,
+                    5,
+                    car.position.z + Math.cos(car.rotation.y) * 6
+                );
+                camera.position.lerp(desiredCameraPos, 0.1);
+                camera.lookAt(car.position.x, car.position.y + 1, car.position.z);
+
+                speedometer.textContent = `Speed: ${Math.abs((speed * 80).toFixed(0))} mph`;
+                renderer.render(scene, camera);
             }
 
-            // Move traffic
-            trafficCars.forEach(t => {
-                t.position.z += speed;
-                if (t.position.z > car.position.z + 30) {
-                    t.position.z = -Math.random() * 200 - 50;
-                    t.position.x = laneXPositions[Math.floor(Math.random() * 3)];
-                }
-            });
-
-            // Collision detection
-            trafficCars.forEach(t => {
-                const dx = car.position.x - t.position.x;
-                const dz = car.position.z - t.position.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                if (distance < 2.5) { score -= 10; t.position.z = -Math.random() * 200 - 50; }
-                else if (distance < 4) { score -= 20; }
-            });
-
-            score = Math.max(score, 0);
-            scoreDiv.textContent = `Score: ${score}`;
-
-            // Smooth camera
-            const desiredCameraPos = new THREE.Vector3(
-                car.position.x + Math.sin(car.rotation.y) * 6,
-                5,
-                car.position.z + Math.cos(car.rotation.y) * 6
-            );
-            camera.position.lerp(desiredCameraPos, 0.1);
-            camera.lookAt(car.position.x, car.position.y + 1, car.position.z);
-
-            speedometer.textContent = `Speed: ${Math.abs((speed * 80).toFixed(0))} mph`;
-            renderer.render(scene, camera);
+        } catch (e) {
+            log(`FATAL ERROR: A core function failed. Message: ${e.message}`);
         }
     </script>
 </body>

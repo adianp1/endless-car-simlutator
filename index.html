@@ -46,11 +46,12 @@
     <div id="debugPanel">Initializing...</div>
     <div id="progress"></div>
 
-    <script type="module">
-        // Importing the necessary libraries from your local repository.
-        import * as THREE from "./three.module.js";
-        import { GLTFLoader } from "./GLTFLoader.js";
-        
+    <script src="three.min.js"></script>
+
+    <script>
+        // The GLTFLoader is now part of the three.min.js file
+        const GLTFLoader = THREE.GLTFLoader;
+
         // --- DEBUG PANEL ---
         const debugPanel = document.getElementById('debugPanel');
         let logs = [];
@@ -63,9 +64,8 @@
         }
         
         log("1. Starting up.");
-        
-        // The rest of the code is wrapped in a try-catch block for more specific debugging.
-        // If the code breaks at any point, it will display the error message.
+
+        // The rest of the code is the same as before, but without the module imports at the top
         try {
             log("2. Attempting to create Three.js Scene.");
             const scene = new THREE.Scene();
